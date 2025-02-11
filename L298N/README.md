@@ -2,14 +2,10 @@
 
 
 ## :small_blue_diamond:*L298N接口*
-### 1. 硬體簡述
+### 硬體簡述
 
-
-
-
-
-
-### 2. 實作
+## :small_blue_diamond:*L298N控制*
+### 實作
 #### 以STM32f103微控制器輸入PWM波形(定速)
 ```c=
 void forward(TIM_HandleTypeDef htim)
