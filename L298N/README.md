@@ -1,6 +1,5 @@
 # L298N 控制程式
 
-
 ## :small_blue_diamond:*L298N接口*
 ### 硬體簡述
 
@@ -28,7 +27,7 @@ void forward(TIM_HandleTypeDef htim)
 ```
 #### 以STM32f103微控制器輸入PWM波形(以PID控制)
 ```c=
-uint16_t r_speed_setting(TIM_HandleTypeDef htim, float pid ,float last_set)
+uint16_t speed_setting(TIM_HandleTypeDef htim, float pid ,float last_set)
 {
 
     //setting PWM mode
