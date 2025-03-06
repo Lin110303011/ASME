@@ -5,3 +5,5 @@ uint16_t Speed_setting(TIM_HandleTypeDef htim, float pid ,float last_set);
 
 void stop(TIM_HandleTypeDef htim);
 
+void PWM_test(TIM_HandleTypeDef htim);
+

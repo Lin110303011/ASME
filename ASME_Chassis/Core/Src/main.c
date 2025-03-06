@@ -51,7 +51,7 @@ TIM_HandleTypeDef htim4;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+double check = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,25 +106,39 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
+  // Encoder start
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+
+  // Wheel speed variables
+  int left_wheel_speed = 0;
+  int right_wheel_speed = 0;
+
   // 初始化 PID：給定 Kp, Ki, Kd, 輸出上下限
 
   PIDController_t pid;
   PID_Init(&pid, 1.0, 0.1, 0.1, -100.0, 100.0);//Kp, Ki, Kd, outputMin, outputMax
   
   float targetDistance = 0; // target distance 
-  float currentDistance = 500;
-  float dt = 0.01;             // 10 ms per control cycle
-
+  double currentDistance = 500;
+  float dt = 0.01;          // 10 ms per control cycle
+  float duty_ratio = 60;    // init duty ratio
+/*
 	// Initialize the VL53L0X
 	statInfo_t_VL53L0X distanceStr;
 	initVL53L0X(1, &hi2c1);
+  check = 11;
 
 	// Configure the sensor for high accuracy and speed in 20 cm.
-	setSignalRateLimit(200);
-	setVcselPulsePeriod(VcselPeriodPreRange, 10);
+	setSignalRateLimit(100);
+  check = 12;
+	setVcselPulsePeriod(VcselPeriodPreRange, 18);
+  check = 20;
 	setVcselPulsePeriod(VcselPeriodFinalRange, 14);
+  check = 30;
 	setMeasurementTimingBudget(300 * 1000UL);
-
+*/
 
   /* USER CODE END 2 */
 
@@ -132,14 +146,30 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
     // Read the distance from the sensor
-    currentDistance = readRangeSingleMillimeters(&distanceStr);
+    //currentDistance = readRangeSingleMillimeters(&distanceStr);
+
 
     // Compute the PID output
     float PID_output = PID_Compute(&pid, targetDistance, currentDistance, dt);
+    duty_ratio += PID_output;
+
+    // Set the limit of duty ratio
+    if (duty_ratio > 100)
+    {
+        duty_ratio = 100;
+    }
+    else if (duty_ratio < 0)
+    {
+        duty_ratio = 0;
+    }
+
+    check = PID_output;
 
     // Set the motor speed
-    Speed_setting(htim2, PID_output, 0);
+    Speed_setting(htim2, 60, 0);
+
 
     // Delay for 10 ms
     HAL_Delay(10);
@@ -251,9 +281,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 35;
+  htim2.Init.Prescaler = 143;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 999;
+  htim2.Init.Period = 9999;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -284,6 +314,11 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
   __HAL_TIM_DISABLE_OCxPRELOAD(&htim2, TIM_CHANNEL_1);
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
